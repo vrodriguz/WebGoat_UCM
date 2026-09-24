@@ -1,0 +1,66 @@
+name: remediate
+ 
+on:
+  workflow_dispatch:
+ 
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+ 
+    steps:    
+      - name: Checkout code
+        uses: actions/checkout@v4
+ 
+      - name: Setup Fortify tools
+        uses: fortify/github-action/setup@v3
+        with:
+          fcli: latest
+ 
+      - name: FOD session login
+        run: fcli fod session login --url ${{secrets.FOD_URL}} --client-id "${{secrets.FOD_CLIENTID}}" --client-secret "${{secrets.FOD_CLIENTSECRET}}"
+ 
+      - name: Apply Aviator remediations
+        run: fcli fod aviator apply-remediations --rel "WebGoat_UCM:v2026.4" --source-dir .
+ 
+      - name: Split files by severity
+        id: paths
+        run: |
+          fcli fod issue list --rel "WebGoat_UCM:v2026.4" -q "severityString=='Critical'" -o json --to-file "$RUNNER_TEMP/critical.json"
+          fcli fod issue list --rel "WebGoat_UCM:v2026.4" -q "severityString!='Critical'" -o json --to-file "$RUNNER_TEMP/rest.json"
+          jq -r '.[] | (.primaryLocationFull // .fileName) | select(. != null)' "$RUNNER_TEMP/critical.json" | sort -u > "$RUNNER_TEMP/critical.txt"
+          jq -r '.[] | (.primaryLocationFull // .fileName) | select(. != null)' "$RUNNER_TEMP/rest.json" | sort -u | grep -vxFf "$RUNNER_TEMP/critical.txt" > "$RUNNER_TEMP/rest.txt" || true
+          { echo "critical<<EOF"; cat "$RUNNER_TEMP/critical.txt"; echo "EOF"; } >> "$GITHUB_OUTPUT"
+          { echo "rest<<EOF"; cat "$RUNNER_TEMP/rest.txt"; echo "EOF"; } >> "$GITHUB_OUTPUT"
+ 
+      - name: Create Pull Request (critical)
+        if: steps.paths.outputs.critical != ''
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'auto-remediation by OpenText SAST Aviator'
+          branch: aviator/remediate-critical-${{ github.run_id }}
+          delete-branch: true
+          add-paths: ${{ steps.paths.outputs.critical }}
+          title: 'Remediation of critical security issues detected by OpenText SAST'
+          body: |
+            Remediation of security issues detected by OpenText SAST.
+            This PR was automatically created by OpenText SAST Aviator.
+            Please review carefully before merging.
+ 
+      - name: Create Pull Request (remaining)
+        if: steps.paths.outputs.rest != ''
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'auto-remediation by OpenText SAST Aviator'
+          branch: aviator/remediate-rest-${{ github.run_id }}
+          delete-branch: true
+          add-paths: ${{ steps.paths.outputs.rest }}
+          title: 'Remediation of remaining security issues detected by OpenText SAST'
+          body: |
+            Remediation of security issues detected by OpenText SAST.
+            This PR was automatically created by OpenText SAST Aviator.
+            Please review carefully before merging.
