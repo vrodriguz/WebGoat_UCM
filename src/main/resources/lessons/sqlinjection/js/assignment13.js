@@ -43,18 +43,19 @@ function getServers(column) {
     $.get("SqlInjectionMitigations/servers?column=" + column, function (result, status) {
         $("#servers").empty();
         for (var i = 0; i < result.length; i++) {
-            var server = html.replace('ID', result[i].id);
             var status = "success";
             if (result[i].status === 'offline') {
                 status = "danger";
             }
-            server = server.replace('ONLINE', status);
-            server = server.replace('STATUS', status);
-            server = server.replace('HOSTNAME', result[i].hostname);
-            server = server.replace('IP', result[i].ip);
-            server = server.replace('MAC', result[i].mac);
-            server = server.replace('DESCRIPTION', result[i].description);
-            $("#servers").append(server);
+            
+            var $row = $('<tr>').addClass(status);
+            $row.append($('<td class="col-check">').append($('<input type="checkbox" class="form-check-input"/>')));
+            $row.append($('<td>').text(result[i].hostname));
+            $row.append($('<td>').text(result[i].ip));
+            $row.append($('<td>').text(result[i].mac));
+            $row.append($('<td class="status">').text(status));
+            $row.append($('<td>').text(result[i].description));
+            $("#servers").append($row);
         }
 
     });

@@ -42,25 +42,46 @@ function getVotings() {
     $("#votesList").empty();
     $.get("JWT/votings", function (result, status) {
         for (var i = 0; i < result.length; i++) {
-            var voteTemplate = html.replace('IMAGE_SMALL', result[i].imageSmall);
+            var $voteItem = $('<a href="#" class="list-group-item"></a>');
             if (i === 0) {
-                voteTemplate = voteTemplate.replace('ACTIVE', 'active');
-                voteTemplate = voteTemplate.replace('BUTTON', 'btn-default');
-            } else {
-                voteTemplate = voteTemplate.replace('ACTIVE', '');
-                voteTemplate = voteTemplate.replace('BUTTON', 'btn-primary');
+                $voteItem.addClass('active');
             }
-            voteTemplate = voteTemplate.replace(/TITLE/g, result[i].title);
-            voteTemplate = voteTemplate.replace('INFORMATION', result[i].information || '');
-            voteTemplate = voteTemplate.replace('NO_VOTES', result[i].numberOfVotes || '');
-            voteTemplate = voteTemplate.replace('AVERAGE', result[i].average || '');
-
-            var hidden = (result[i].numberOfVotes === undefined ? 'hidden' : '');
-            voteTemplate = voteTemplate.replace(/HIDDEN_VIEW_VOTES/g, hidden);
-            hidden = (result[i].average === undefined ? 'hidden' : '');
-            voteTemplate = voteTemplate.replace(/HIDDEN_VIEW_RATING/g, hidden);
-
-            $("#votesList").append(voteTemplate);
+            
+            var $media = $('<div class="media col-md-3"><figure><img class="media-object img-rounded" alt="placehold.it/350x250"/></figure></div>');
+            $media.find('img').attr('src', 'images/' + result[i].imageSmall);
+            
+            var $content = $('<div class="col-md-6"><h4 class="list-group-item-heading"></h4><p class="list-group-item-text"></p></div>');
+            $content.find('h4').text(result[i].title);
+            $content.find('p').text(result[i].information || '');
+            
+            var $voting = $('<div class="col-md-3 text-center"></div>');
+            var $votesHeader = $('<h2></h2>');
+            if (result[i].numberOfVotes !== undefined) {
+                $votesHeader.text(result[i].numberOfVotes).append($('<small> votes</small>'));
+            } else {
+                $votesHeader.attr('hidden', true);
+            }
+            $voting.append($votesHeader);
+            
+            var $button = $('<button type="button" class="btn btn-lg btn-block">Vote Now!</button>');
+            $button.addClass(i === 0 ? 'btn-default' : 'btn-primary');
+            $button.attr('id', result[i].title);
+            $button.on('click', function() { vote(this.id); });
+            $voting.append($button);
+            
+            var $stars = $('<div class="stars"><span class="glyphicon glyphicon-star"></span><span class="glyphicon glyphicon-star"></span><span class="glyphicon glyphicon-star"></span><span class="glyphicon glyphicon-star-empty"></span></div>');
+            var $avgText = $('<p>Average <small> /</small>4</p>');
+            if (result[i].average !== undefined) {
+                $stars.css('visibility', 'visible');
+                $avgText.prepend(document.createTextNode(result[i].average));
+            } else {
+                $stars.css('visibility', 'hidden');
+                $avgText.attr('hidden', true);
+            }
+            $voting.append($stars).append($avgText);
+            
+            $voteItem.append($media).append($content).append($voting).append($('<div class="clearfix"></div>'));
+            $("#votesList").append($voteItem);
         }
     })
 }
