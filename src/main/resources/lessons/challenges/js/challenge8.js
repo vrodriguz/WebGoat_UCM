@@ -15,7 +15,7 @@ function loadVotes() {
                 console.log(percent);
                 var progressBar = $('#progressBar' + i);
                 progressBar.width(Math.round(percent) * 2 + '%');
-                $("#nrOfVotes" + i).html(votes[i]);
+                $("#nrOfVotes" + i).text(votes[i]);
 
             }
         }
@@ -49,7 +49,7 @@ function doVote(stars) {
         } else {
             $("#voteResultMsg").addClass('alert-success alert-dismissable');
         }
-        $("#voteResultMsg").html(result["message"]);
+        $("#voteResultMsg").text(result["message"]);
         $("#voteResultMsg").show();
     })
     loadVotes();

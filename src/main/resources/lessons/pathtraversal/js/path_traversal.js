@@ -11,7 +11,12 @@ webgoat.customjs.profileUpload = function () {
 
 webgoat.customjs.profileUploadCallback = function () {
     $.get("PathTraversal/profile-picture", function (result, status) {
-        document.getElementById("preview").src = "data:image/png;base64," + result;
+        var base64Pattern = /^[A-Za-z0-9+/]*={0,2}$/;
+        if (result && base64Pattern.test(result)) {
+            document.getElementById("preview").src = "data:image/png;base64," + result;
+        } else {
+            console.error("Invalid base64 data received");
+        }
     });
 }
 
@@ -27,7 +32,12 @@ webgoat.customjs.profileUploadFix = function () {
 
 webgoat.customjs.profileUploadCallbackFix = function () {
     $.get("PathTraversal/profile-picture", function (result, status) {
-        document.getElementById("previewFix").src = "data:image/png;base64," + result;
+        // Validate that result contains only valid base64 characters
+        if (result && /^[A-Za-z0-9+/=]+$/.test(result)) {
+            document.getElementById("previewFix").src = "data:image/png;base64," + result;
+        } else {
+            console.error("Invalid base64 data received");
+        }
     });
 }
 
@@ -44,14 +54,24 @@ webgoat.customjs.profileUploadRemoveUserInput = function () {
 
 webgoat.customjs.profileUploadCallbackRemoveUserInput = function () {
     $.get("PathTraversal/profile-picture", function (result, status) {
-        document.getElementById("previewRemoveUserInput").src = "data:image/png;base64," + result;
+        // Validate that result contains only valid base64 characters
+        if (/^[A-Za-z0-9+/=]+$/.test(result)) {
+            document.getElementById("previewRemoveUserInput").src = "data:image/png;base64," + result;
+        } else {
+            console.error("Invalid base64 data received");
+        }
     });
 }
 
 
 webgoat.customjs.profileUploadCallbackRetrieval = function () {
     $.get("PathTraversal/profile-picture", function (result, status) {
-        document.getElementById("previewRetrieval").src = "data:image/png;base64," + result;
+        // Validate that result contains only valid base64 characters
+        if (/^[A-Za-z0-9+/=]+$/.test(result)) {
+            document.getElementById("previewRetrieval").src = "data:image/png;base64," + result;
+        } else {
+            console.error("Invalid base64 data received");
+        }
     });
 }
 

@@ -34,10 +34,18 @@ $(document).ready(function () {
         $("#list").empty();
         $.get('CrossSiteScriptingStored/stored-xss', function (result, status) {
             for (var i = 0; i < result.length; i++) {
-                var comment = html.replace('USER', result[i].user);
-                comment = comment.replace('DATETIME', result[i].dateTime);
-                comment = comment.replace('COMMENT', result[i].text);
-                $("#list").append(comment);
+                var $comment = $('<li class="comment"></li>');
+                var $pullLeft = $('<div class="pull-left"></div>');
+                $pullLeft.append('<img class="avatar" src="images/avatar1.png" alt="avatar"/>');
+                var $commentBody = $('<div class="comment-body"></div>');
+                var $commentHeading = $('<div class="comment-heading"></div>');
+                var $user = $('<h4 class="user"></h4>').text(result[i].user);
+                var $time = $('<h5 class="time"></h5>').text(result[i].dateTime);
+                $commentHeading.append($user).append($time);
+                var $text = $('<p></p>').text(result[i].text);
+                $commentBody.append($commentHeading).append($text);
+                $comment.append($pullLeft).append($commentBody);
+                $("#list").append($comment);
             }
 
         });
