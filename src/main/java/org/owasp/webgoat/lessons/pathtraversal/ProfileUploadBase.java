@@ -121,9 +121,12 @@ public class ProfileUploadBase implements AssignmentEndpoint {
     }
   }
 
+
   @SneakyThrows
   protected byte[] defaultImage() {
-    var inputStream = getClass().getResourceAsStream("/images/account.png");
-    return Base64.getEncoder().encode(FileCopyUtils.copyToByteArray(inputStream));
-  }
+    try (var inputStream = getClass().getResourceAsStream("/images/account.png")) {
+      return Base64.getEncoder().encode(FileCopyUtils.copyToByteArray(inputStream));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 }

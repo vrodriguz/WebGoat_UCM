@@ -43,13 +43,11 @@ public class Salaries {
     if (!targetDirectory.exists()) {
       targetDirectory.mkdir();
     }
-    try {
-      FileCopyUtils.copy(
-          classPathResource.getInputStream(),
-          new FileOutputStream(new File(targetDirectory, "employees.xml")));
+    try (InputStream inputStream = classPathResource.getInputStream();
+         FileOutputStream outputStream = new FileOutputStream(new File(targetDirectory, "employees.xml"))) {
+      FileCopyUtils.copy(inputStream, outputStream);
     } catch (IOException e) {
       throw new RuntimeException(e);
-    }
   }
 
   @GetMapping("clientSideFiltering/salaries")
